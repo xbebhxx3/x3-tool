@@ -5,7 +5,6 @@
 @remarks         编译时加 -std=gnu++11 -lgdi32 -lwsock32
 @author          xbehxx3
 @date            2022/6/14
-@file            x3-f.h
 Copyright (c) 2022-2077 xbebhxx3
 ***************************************/
 #include "x3-f.h" 
@@ -103,7 +102,7 @@ int main(int argc, char** argv){
 	start:
 	if(argc==1){
 		printf("示例：x3-tool.exe [功能] ([值])\n");
-		printf("大杂烩命令行中文工具箱  v3.0\n");
+		printf("一个超小体积的强大的windows命令行工具-x3tool  v3.0\n");
 		printf("支持直接运行/命令行调用\n");
 		printf("无返回值的返回0均为失败\n");
 		printf("邮件:admin@n103.top\n");
