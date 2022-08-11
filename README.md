@@ -32,9 +32,11 @@
     |- 帮助                                     (h)
     |- 版本                                     (v)
 # 食用方法
-1.直接并根据提示输入
+1.直接运行并根据提示输入
 
-2.在shell中根据提示顺序输入
+2.命令行调用
+
+3.在批处理文件中调用
 
 ## 命令行调用
 
@@ -49,7 +51,7 @@ x3-tool.exe ut cmd.exe(以TrustedInstaller权限打开cmd)
 
 x3-tool gpl cmd.exe(获得进程名为cmd.exe的进程路径)
 
-## 在bat中调用
+## 在批处理文件中调用
 
 通过
     for /f %%i in ('命令') do set val=%%i 
