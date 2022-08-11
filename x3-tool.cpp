@@ -224,8 +224,8 @@ int main(int argc, char** argv){
 		if(argc==4){
 			char* cpid = argv[2];
 			DWORD dpid = atoi(cpid);
-			if(lstrcmp(argv[3],"1")==0)printf("%d",SuspendProcess(dpid,1));
-			else printf("%d",SuspendProcess(dpid,0));
+			if(lstrcmp(argv[3],"1")==0)printf("%d",CriticalProcess(dpid,1));
+			else printf("%d",CriticalProcess(dpid,0));
 		}
 		else {
 			printf("[+] ½ø³Ìid£º");
