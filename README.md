@@ -31,6 +31,34 @@
     |- 真·全屏                                 (fc)
     |- 帮助                                     (h)
     |- 版本                                     (v)
+# 食用方法
+1.直接并根据提示输入
+
+2.在shell中根据提示顺序输入
+
+## 命令行调用
+
+在shell中根据提示顺序输入
+
+### 示例：
+x3-tool.exe sp 10010 1(挂起id为10010的进程)
+
+x3-tool.exe sp 10010 0(取消挂起id为10010的进程)
+
+x3-tool.exe ut cmd.exe(以TrustedInstaller权限打开cmd)
+
+x3-tool gpl cmd.exe(获得进程名为cmd.exe的进程路径)
+
+## 在bat中调用
+
+通过
+    for /f %%i in ('命令') do set val=%%i 
+获得命令返回值
+
+### 示例：
+    for /f %%i in ('"%~dp0x3-tool.exe" ip 123.exe') do set val=%%i 
+    if %val% NEQ 0 "%~dp0x3-tool.exe" cp %val% 1
+获得进程名为123.exe的进程id并设置关键进程
 # 编译环境
 MinGW64（g++）
 
