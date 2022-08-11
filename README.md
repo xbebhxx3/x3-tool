@@ -58,7 +58,17 @@ x3-tool gpl cmd.exe(获得进程名为cmd.exe的进程路径)
 ### 示例：
     for /f %%i in ('"%~dp0x3-tool.exe" ip 123.exe') do set val=%%i 
     if %val% NEQ 0 "%~dp0x3-tool.exe" cp %val% 1
+    
 获得进程名为123.exe的进程id并设置关键进程
+
+    @echo off
+    %1 mshta vbscript:CreateObject("Shell.Application").ShellExecute("cmd.exe","/c %~s0 ::","","runas",1)(window.close)&&exit
+    for /f %%i in ('"%~dp0x3-tool.exe" gu') do set val=%%i 
+    if %val% NEQ SYSTEM "%~dp0x3-tool.exe" ut "%0"&&exit
+    其他命令
+    
+以TrustedInstaller权限执行bat
+
 # 编译环境
 MinGW64（g++）
 
