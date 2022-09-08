@@ -1,7 +1,7 @@
 /**************************************
-@brief 			 x3-tool
-@license: 		 GPLv3
-@version  	     4.0
+@brief           x3-tool
+@license         GPLv3
+@version          5.0
 @remarks         编译时加 -std=gnu++11 -lgdi32 -lwsock32
 @author          xbehxx3
 @date            2022/6/14
@@ -115,7 +115,7 @@ start:
 	if (argc == 1)
 	{
 		printf("示例：x3-tool.exe [功能] ([值])\n");
-		printf("一个超小体积的强大的windows命令行工具-x3tool  v4.0\n");
+		printf("一个超小体积的强大的windows命令行工具-x3tool  v5.0\n");
 		printf("支持直接运行/命令行调用\n");
 		printf("无返回值的返回0均为失败1均为成功\n");
 		printf("邮件:admin@n103.top\n");
@@ -136,6 +136,8 @@ start:
 		printf("|   |- 挂起进程                             (sp)\n");
 		printf("|   |- 设置关键进程                         (cp)\n");
 		printf("|   |- 停止服务                             (cs)\n");
+		printf("|   |- 启动服务                             (ss)\n");
+		printf("|   |- 列出所有服务                         (ls)\n");
 		printf("|   |- 列出进程模块                         (lpm)\n");
 		printf("|   |- 列出进程线程                         (lpt)\n");
 		printf("|   |- 列出所有进程详细信息                 (lp)\n");
@@ -324,6 +326,27 @@ start:
 			goto input;
 		}
 	}
+	else if (lstrcmp(gn, "ss") == 0)
+	{
+		if (argc == 3)
+		{
+			printf("%d", StartService(argv[2]));
+		}
+		else
+		{
+			printf("[+] 服务名：");
+			cin.sync();
+			scanf("%[^\n]", &in);
+			printf("%d", StartService(in));
+			goto input;
+		}
+	}
+	else if (lstrcmp(gn, "ls") == 0)
+	{
+		ListService();
+		if (argc != 2)
+			goto input;
+	}
 	else if (lstrcmp(gn, "lpm") == 0)
 	{
 		if (argc == 3)
@@ -361,7 +384,8 @@ start:
 	else if (lstrcmp(gn, "lp") == 0)
 	{
 		GetProcessList();
-		goto input;
+		if (argc != 2)
+			goto input;
 	}
 	else if (lstrcmp(gn, "cu") == 0)
 	{
@@ -511,7 +535,7 @@ start:
 	}
 	else if (lstrcmp(gn, "v") == 0)
 	{
-		printf("v4.0\n");
+		printf("v5.0\n");
 		if (argc != 2)
 			goto input;
 	}
