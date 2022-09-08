@@ -1,7 +1,7 @@
 /**********************************************************
 @brief: 			 xbebhxx3函数合集
 @license: 	         GPLv3
-@version:  	         8.1
+@version:  	         9.1
 @remarks:            编译时加 -std=gnu++11 -lgdi32 -lwsock32
 @author:             xbehxx3
 @date:               2022/3/28
@@ -39,6 +39,8 @@ x3-f.h
 |   |- 挂起进程
 |   |- 设置/解除关键进程
 |   |- 停止服务
+|   |- 启动服务
+|   |- 列出所有服务
 |- 串口操作
 |    |- 打开串口
 |    |- 关闭串口
@@ -279,8 +281,9 @@ bool UseTrustedInstaller(const char *exec)
 	PROCESSENTRY32W pe = {0};
 	pe.dwSize = sizeof(PROCESSENTRY32W);
 	Process32FirstW(hSnapshot, &pe);
-	while (Process32NextW(hSnapshot, &pe) && _wcsicmp(pe.szExeFile, L"winlogon.exe"));//当前进程是winlogon.exe
-	OpenProcessToken(OpenProcess(PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION, FALSE, pe.th32ProcessID), MAXIMUM_ALLOWED, &hSystemToken);// 获取指定进程的句柄令牌
+	while (Process32NextW(hSnapshot, &pe) && _wcsicmp(pe.szExeFile, L"winlogon.exe"))
+		;																																	//当前进程是winlogon.exe
+	OpenProcessToken(OpenProcess(PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION, FALSE, pe.th32ProcessID), MAXIMUM_ALLOWED, &hSystemToken); // 获取指定进程的句柄令牌
 	SECURITY_ATTRIBUTES ItokenAttributes;
 	ItokenAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
 	ItokenAttributes.lpSecurityDescriptor = nullptr;
@@ -511,8 +514,8 @@ bool CriticalProcess(DWORD dwProcessID, BOOL fSuspend)
 /**************************************************
  *  @brief          停止服务
  *  @param          服务名
- *  @note           头文件： #include <Windows.h> #include <TlHelp32.h>
- *  @Sample usage 	CriticalProcess("CryptSvc");
+ *  @note           头文件： #include <Windows.h>
+ *  @Sample usage 	CloseService("CryptSvc");
  * 	@return  	    1成功，0失败
  * 	@author         xbebhxx3
  * 	@version        1.0
@@ -525,7 +528,7 @@ bool CloseService(char *service)
 	if (hSC == NULL)
 		return false;
 
-	SC_HANDLE hSvc = ::OpenService(hSC, service, SERVICE_START | SERVICE_QUERY_STATUS | SERVICE_STOP); //打开服务
+	SC_HANDLE hSvc = OpenService(hSC, service, SERVICE_START | SERVICE_QUERY_STATUS | SERVICE_STOP); //打开服务
 	if (hSvc == NULL)
 	{
 		CloseServiceHandle(hSC);
@@ -546,7 +549,7 @@ bool CloseService(char *service)
 			CloseServiceHandle(hSC);
 			return false; //停止服务失败，关闭HANDLE退出
 		}
-		while (::QueryServiceStatus(hSvc, &status) == TRUE) //等待服务停止
+		while (QueryServiceStatus(hSvc, &status) == TRUE) //等待服务停止
 		{
 			Sleep(status.dwWaitHint);
 			if (status.dwCurrentState == SERVICE_STOPPED) //服务已经停止
@@ -561,6 +564,174 @@ bool CloseService(char *service)
 	CloseServiceHandle(hSvc);
 	CloseServiceHandle(hSC);
 	return true; //服务已停止，关闭HANDLE退出
+}
+
+/**************************************************
+ *  @brief          启动服务
+ *  @param          服务名
+ *  @note           头文件： #include <Windows.h>
+ *  @Sample usage 	StartService("CryptSvc");
+ * 	@return  	    1成功，0失败
+ * 	@author         xbebhxx3
+ * 	@version        1.0
+ * 	@date           2022/9/8
+ *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+ **************************************************/
+bool StartService(char *service)
+{
+	SC_HANDLE hSC = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS); //打开服务管理器
+	if (hSC == NULL)
+		return false;
+
+	SC_HANDLE hSvc = OpenService(hSC, service, SERVICE_START | SERVICE_QUERY_STATUS | SERVICE_STOP); //打开服务
+	if (hSvc == NULL)
+	{
+		CloseServiceHandle(hSC);
+		return false; //打开服务管理器失败，关闭HANDLE退出
+	}
+	SERVICE_STATUS status;
+	if (QueryServiceStatus(hSvc, &status) == FALSE) //获得服务状态
+	{
+		CloseServiceHandle(hSvc);
+		CloseServiceHandle(hSC);
+		return false; //查询服务状态失败，关闭HANDLE退出
+	}
+	if (status.dwCurrentState != SERVICE_RUNNING) //如果未运行，启动服务
+	{
+		if (StartService(hSvc, NULL, NULL) == FALSE)
+		{
+			CloseServiceHandle(hSvc);
+			CloseServiceHandle(hSC);
+			return false; //启动服务失败，关闭HANDLE退出
+		}
+
+		while (QueryServiceStatus(hSvc, &status) == TRUE) // 等待服务启动
+		{
+			Sleep(status.dwWaitHint);
+			if (status.dwCurrentState == SERVICE_RUNNING) //服务已经运行
+			{
+				CloseServiceHandle(hSvc);
+				CloseServiceHandle(hSC);
+				return true; //服务已启动，关闭HANDLE退出
+			}
+		}
+	}
+
+	CloseServiceHandle(hSvc);
+	CloseServiceHandle(hSC);
+	return true; //服务已启动，关闭HANDLE退出
+}
+
+/**************************************************
+ *  @brief          列出所有服务
+ *  @param          服务名
+ *  @note           头文件： #include <Windows.h>
+ *  @Sample usage 	ListService();
+ * 	@author         xbebhxx3
+ * 	@version        1.0
+ * 	@date           2022/9/8
+ *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+ **************************************************/
+void ListService()
+{
+	SC_HANDLE SCMan = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	if (SCMan == NULL)
+		return;
+	LPENUM_SERVICE_STATUS service_status;
+	DWORD cbBytesNeeded = NULL;
+	DWORD ServicesReturned = NULL;
+	DWORD ResumeHandle = NULL;
+
+	service_status = (LPENUM_SERVICE_STATUS)LocalAlloc(LPTR, 65536);
+
+	BOOL ESS = EnumServicesStatus(SCMan, //句柄
+								  SERVICE_DRIVER |
+									  SERVICE_FILE_SYSTEM_DRIVER |
+									  SERVICE_KERNEL_DRIVER |
+									  SERVICE_WIN32 |
+									  SERVICE_WIN32_OWN_PROCESS |
+									  SERVICE_WIN32_SHARE_PROCESS,		 //服务类型
+								  SERVICE_STATE_ALL,					 //服务的状态
+								  (LPENUM_SERVICE_STATUS)service_status, //输出参数，系统服务的结构
+								  65536,								 //结构的大小
+								  &cbBytesNeeded,						 //输出参数，接收返回所需的服务
+								  &ServicesReturned,					 //输出参数，接收返回服务的数量
+								  &ResumeHandle);						 //输入输出参数，第一次调用必须为0，返回为0代表成功
+	if (ESS == NULL)
+		return;
+	for (int i = 0; i < static_cast<int>(ServicesReturned); i++)
+	{
+		printf("服务显示名:%s\n", service_status[i].lpDisplayName);
+		printf("\t服务名:%s\n", service_status[i].lpServiceName);
+
+		printf("\t类型:");
+		switch (service_status[i].ServiceStatus.dwServiceType)
+		{ // 服务状态
+		case SERVICE_FILE_SYSTEM_DRIVER:
+			printf("文件系统驱动程序\n");
+			break;
+		case SERVICE_KERNEL_DRIVER:
+			printf("设备驱动程序\n");
+			break;
+		case SERVICE_WIN32_OWN_PROCESS:
+			printf("在其自己的进程中运行\n");
+			break;
+		case SERVICE_WIN32_SHARE_PROCESS:
+			printf("与其他服务共享一个进程\n");
+			break;
+		case 0x00000050:
+			printf("在其自己的进程中运行\n");
+			break;
+		case 0x00000060:
+			printf("在登录用户帐户下运行的一个或多个其他服务共享一个进程\n");
+			break;
+		case SERVICE_INTERACTIVE_PROCESS:
+			printf("可以与桌面交互\n");
+			break;
+		default:
+			printf("未知\n");
+			break;
+		}
+
+		printf("\t状态:");
+		switch (service_status[i].ServiceStatus.dwCurrentState)
+		{ // 服务状态
+		case SERVICE_CONTINUE_PENDING:
+			printf("即将继续\n");
+			break;
+		case SERVICE_PAUSE_PENDING:
+			printf("即将暂停\n");
+			break;
+		case SERVICE_PAUSED:
+			printf("已暂停\n");
+			break;
+		case SERVICE_RUNNING:
+			printf("正在运行\n");
+			break;
+		case SERVICE_START_PENDING:
+			printf("正在启动\n");
+			break;
+		case SERVICE_STOP_PENDING:
+			printf("正在停止\n");
+			break;
+		case SERVICE_STOPPED:
+			printf("已停止\n");
+			break;
+		default:
+			printf("未知\n");
+			break;
+		}
+		LPQUERY_SERVICE_CONFIG lpServiceConfig = NULL;												//服务详细信息结构
+		SC_HANDLE service_curren = NULL;															//当前的服务句柄
+		service_curren = OpenService(SCMan, service_status[i].lpServiceName, SERVICE_QUERY_CONFIG); //打开当前服务
+		lpServiceConfig = (LPQUERY_SERVICE_CONFIG)LocalAlloc(LPTR, 8192);							//分配内存， 最大为8kb
+
+		if (NULL == QueryServiceConfig(service_curren, lpServiceConfig, 8192, &ResumeHandle))
+			return;
+		printf("\t启动命令:%s\n", lpServiceConfig->lpBinaryPathName);
+		CloseServiceHandle(service_curren);
+	}
+	CloseServiceHandle(SCMan);
 }
 
 //进程操作结束
