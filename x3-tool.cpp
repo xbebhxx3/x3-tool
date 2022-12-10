@@ -1,15 +1,17 @@
 /**************************************
 @brief           x3-tool
 @license         GPLv3
-@version          5.0
-@remarks         编译时加 -std=gnu++11 -lgdi32 -lwsock32
-@author          xbehxx3
-@date            2022/6/14
+@version          6.0
+@remarks          编译时加 -std=gnu++11 -lgdi32 -lwsock32
+@author           xbehxx3
+@date             2022/6/14
 Copyright (c) 2022-2077 xbebhxx3
 ***************************************/
 #include "x3-f.h"
+#include <iostream>
 
 char in[1000], gn[1000];
+DWORD InId;
 
 BOOL ListProcessModules(DWORD dwPID)
 { //列出进程模块
@@ -109,55 +111,10 @@ BOOL GetProcessList()
 
 int main(int argc, char **argv)
 {
-	char *cpid;
-	DWORD dpid;
-start:
+	EnableAllPrivilege();
 	if (argc == 1)
 	{
-		printf("示例：x3-tool.exe [功能] ([值])\n");
-		printf("一个超小体积的强大的windows命令行工具-x3tool  v5.0\n");
-		printf("支持直接运行/命令行调用\n");
-		printf("无返回值的返回0均为失败1均为成功\n");
-		printf("邮件:admin@n103.top\n");
-		printf("官网:www.n103.top\n");
-		printf("           by:  xbebhxx3\n\n");
-		printf("x3-tool\n");
-		printf("|- 权限操作                                     \n");
-		printf("|    |- 判断管理员权限  1有 0无             (ia)\n");
-		printf("|    |- 以管理员权限打开                    (ua)\n");
-		printf("|    |- 以system权限打开                    (us)\n");
-		printf("|    |- 以TrustedInstaller权限打开          (ut)\n");
-		printf("|    |- 以administrator权限重启工具         (ra)\n");
-		printf("|    |- 以TrustedInstaller权限重启工具      (rt)\n");
-		printf("|- 进程操作                                     \n");
-		printf("|   |- 结束进程                             (kp)\n");
-		printf("|   |- 判断进程是否存在 ,并返回进程id       (ip)\n");
-		printf("|   |- 获得进程路径                         (gpl)\n");
-		printf("|   |- 挂起进程                             (sp)\n");
-		printf("|   |- 设置关键进程                         (cp)\n");
-		printf("|   |- 停止服务                             (cs)\n");
-		printf("|   |- 启动服务                             (ss)\n");
-		printf("|   |- 列出所有服务                         (ls)\n");
-		printf("|   |- 列出进程模块                         (lpm)\n");
-		printf("|   |- 列出进程线程                         (lpt)\n");
-		printf("|   |- 列出所有进程详细信息                 (lp)\n");
-		printf("|- 编/解码操作                                  \n");
-		printf("|      |- Url编码                           (cu)\n");
-		printf("|      |- Url解码                           (du)\n");
-		printf("|      |- 简易加密                          (xc)\n");
-		printf("|- 锁定鼠标键盘                             (lkm)\n");
-		printf("|- 执行shell命令                            (rs)\n");
-		printf("|- 获得鼠标位置                             (mxy)\n");
-		printf("|- 清屏                                     (cls)\n");
-		printf("|- 获得当前ip                               (gi)\n");
-		printf("|- 获得当前用户名                           (gu)\n");
-		printf("|- 获得系统版本                             (gv)\n");
-		printf("|- 居中输出                                 (om)\n");
-		printf("|- 隐藏窗口                                 (hw)\n");
-		printf("|- 真·全屏                                 (fc)\n");
-		printf("|- 帮助                                     (h)\n");
-		printf("|- 版本                                     (v)\n\n");
-		printf("示例：x3-tool.exe sp 10010 1\n");
+		printf("x3-tool v6.0\n输入h获得帮助\n");
 	input:
 		printf("\n>");
 		cin.sync();
@@ -214,22 +171,26 @@ start:
 	}
 	else if (lstrcmp(gn, "ra") == 0)
 	{
-		RunAsAdmin();
+		printf("%d", RunAsAdmin());
+		if (argc != 2)
+			goto input;
 	}
 	else if (lstrcmp(gn, "rt") == 0)
 	{
-		RunAsTi();
+		printf("%d", RunAsTi());
+		if (argc != 2)
+			goto input;
 	}
 	else if (lstrcmp(gn, "kp") == 0)
 	{
 		if (argc == 3)
-			KillProcess(argv[2]);
+			printf("%d", KillProcess(atoi(argv[2])));
 		else
 		{
-			printf("[+] 进程名：");
+			printf("[+] 进程ID: ");
 			cin.sync();
-			scanf("%[^\n]", &in);
-			KillProcess(in);
+			scanf("%d", &InId);
+			printf("%d", KillProcess(InId));
 			goto input;
 		}
 	}
@@ -239,7 +200,7 @@ start:
 			printf("%d", isProcess(argv[2]));
 		else
 		{
-			printf("[+] 进程名：");
+			printf("[+] 进程名: ");
 			cin.sync();
 			scanf("%[^\n]", &in);
 			printf("%d", isProcess(in));
@@ -249,13 +210,13 @@ start:
 	else if (lstrcmp(gn, "gpl") == 0)
 	{
 		if (argc == 3)
-			printf("%s", GetProcesslocation(argv[2]).c_str());
+			printf("%s", GetProcesslocation(atoi(argv[2])));
 		else
 		{
-			printf("[+] 进程名：");
+			printf("[+] 进程ID: ");
 			cin.sync();
-			scanf("%[^\n]", &in);
-			printf("%s", GetProcesslocation(in).c_str());
+			scanf("%d", &InId);
+			printf("%s", GetProcesslocation(InId));
 			goto input;
 		}
 	}
@@ -263,25 +224,23 @@ start:
 	{
 		if (argc == 4)
 		{
-			char *cpid = argv[2];
-			DWORD dpid = atoi(cpid);
 			if (lstrcmp(argv[3], "1") == 0)
-				printf("%d", SuspendProcess(dpid, 1));
+				printf("%d", SuspendProcess(atoi(argv[2]), 1));
 			else
-				printf("%d", SuspendProcess(dpid, 0));
+				printf("%d", SuspendProcess(atoi(argv[2]), 0));
 		}
 		else
 		{
-			printf("[+] 进程id：");
+			printf("[+] 进程ID: ");
 			cin.sync();
-			scanf("%d", &dpid);
-			printf("[+] 1挂起0解除：");
+			scanf("%d", &InId);
+			printf("[+] 1挂起0解除: ");
 			cin.sync();
 			scanf("%[^\n]", &in);
 			if (lstrcmp(in, "1") == 0)
-				printf("%d", SuspendProcess(dpid, 1));
+				printf("%d", SuspendProcess(InId, 1));
 			else
-				printf("%d", SuspendProcess(dpid, 0));
+				printf("%d", SuspendProcess(InId, 0));
 			goto input;
 		}
 	}
@@ -289,25 +248,23 @@ start:
 	{
 		if (argc == 4)
 		{
-			char *cpid = argv[2];
-			DWORD dpid = atoi(cpid);
 			if (lstrcmp(argv[3], "1") == 0)
-				printf("%d", CriticalProcess(dpid, 1));
+				printf("%d", CriticalProcess(atoi(argv[2]), 1));
 			else
-				printf("%d", CriticalProcess(dpid, 0));
+				printf("%d", CriticalProcess(atoi(argv[2]), 0));
 		}
 		else
 		{
-			printf("[+] 进程id：");
+			printf("[+] 进程ID: ");
 			cin.sync();
-			scanf("%d", &dpid);
-			printf("[+] 1设置0解除：");
+			scanf("%d", &InId);
+			printf("[+] 1设置0解除: ");
 			cin.sync();
 			scanf("%[^\n]", &in);
 			if (lstrcmp(in, "1") == 0)
-				printf("%d", CriticalProcess(dpid, 1));
+				printf("%d", CriticalProcess(InId, 1));
 			else
-				printf("%d", CriticalProcess(dpid, 0));
+				printf("%d", CriticalProcess(InId, 0));
 			goto input;
 		}
 	}
@@ -330,14 +287,14 @@ start:
 	{
 		if (argc == 3)
 		{
-			printf("%d", StartService(argv[2]));
+			printf("%d", _StartService(argv[2]));
 		}
 		else
 		{
 			printf("[+] 服务名：");
 			cin.sync();
 			scanf("%[^\n]", &in);
-			printf("%d", StartService(in));
+			printf("%d", _StartService(in));
 			goto input;
 		}
 	}
@@ -350,34 +307,26 @@ start:
 	else if (lstrcmp(gn, "lpm") == 0)
 	{
 		if (argc == 3)
-		{
-			char *cpid = argv[2];
-			DWORD dpid = atoi(cpid);
-			ListProcessModules(dpid);
-		}
+			ListProcessModules(atoi(argv[2]));
 		else
 		{
-			printf("[+] 进程id：");
+			printf("[+] 进程ID: ");
 			cin.sync();
-			scanf("%d", &dpid);
-			ListProcessModules(dpid);
+			scanf("%d", &InId);
+			ListProcessModules(InId);
 			goto input;
 		}
 	}
 	else if (lstrcmp(gn, "lpt") == 0)
 	{
 		if (argc == 3)
-		{
-			char *cpid = argv[2];
-			DWORD dpid = atoi(cpid);
-			ListProcessThreads(dpid);
-		}
+			ListProcessThreads(atoi(argv[2]));
 		else
 		{
-			printf("[+] 进程id：");
+			printf("[+] 进程ID: ");
 			cin.sync();
-			scanf("%d", &dpid);
-			ListProcessThreads(dpid);
+			scanf("%d", &InId);
+			ListProcessThreads(InId);
 			goto input;
 		}
 	}
@@ -416,13 +365,13 @@ start:
 	else if (lstrcmp(gn, "xc") == 0)
 	{
 		if (argc == 3)
-			printf("%s", x3code(argv[2]).c_str());
+			printf("%s", x3code(argv[2]));
 		else
 		{
 			printf("[+] 输入字符串：");
 			cin.sync();
 			scanf("%[^\n]", &in);
-			printf("%s", x3code(in).c_str());
+			printf("%s", x3code(in));
 			goto input;
 		}
 	}
@@ -437,7 +386,7 @@ start:
 		}
 		else
 		{
-			printf("[+] 1锁定0解除：");
+			printf("[+] 1锁定0解除: ");
 			cin.sync();
 			scanf("%[^\n]", &in);
 			if (lstrcmp(in, "1") == 0)
@@ -481,19 +430,19 @@ start:
 	}
 	else if (lstrcmp(gn, "gi") == 0)
 	{
-		printf("%s", getIp().c_str());
+		printf("%s", getIp());
 		if (argc != 2)
 			goto input;
 	}
 	else if (lstrcmp(gn, "gu") == 0)
 	{
-		printf("%s", GetUser().c_str());
+		printf("%s", GetUser());
 		if (argc != 2)
 			goto input;
 	}
 	else if (lstrcmp(gn, "gv") == 0)
 	{
-		printf("%s", GetSystemVersion().c_str());
+		printf("%s", GetSystemVersion());
 		if (argc != 2)
 			goto input;
 	}
@@ -501,9 +450,7 @@ start:
 	{
 		if (argc == 4)
 		{
-			char *cpid = argv[3];
-			DWORD dpid = atoi(cpid);
-			OutoutMiddle(argv[2], dpid);
+			OutoutMiddle(argv[2], atoi(argv[3]));
 		}
 		else
 		{
@@ -512,22 +459,35 @@ start:
 			scanf("%[^\n]", &in);
 			printf("[+] 行数：");
 			cin.sync();
-			scanf("%d", &dpid);
-			OutoutMiddle(in, dpid);
+			scanf("%d", &InId);
+			OutoutMiddle(in, InId);
 			goto input;
 		}
 	}
-	else if (lstrcmp(gn, "hw") == 0)
+	else if (lstrcmp(gn, "fc") == 0)
 	{
-		HideWindow();
+		full_screen(GetForegroundWindow());
 		if (argc != 2)
 			goto input;
 	}
-	else if (lstrcmp(gn, "fc") == 0)
+	else if (lstrcmp(gn, "rn") == 0)
 	{
-		full_screen();
-		if (argc != 2)
+		if (argc == 4)
+		{
+			radom(atoi(argv[2]), atoi(argv[3]));
+		}
+		else
+		{
+			long long min,max;
+			printf("[+] 开始: ");
+			cin.sync();
+			scanf("%lld", &min);
+			printf("[+] 结束: ");
+			cin.sync();
+			scanf("%lld", &max);
+			printf("%lld", radom(min, max));
 			goto input;
+		}
 	}
 	else if (lstrcmp(gn, "exit") == 0)
 	{
@@ -535,13 +495,58 @@ start:
 	}
 	else if (lstrcmp(gn, "v") == 0)
 	{
-		printf("v5.0\n");
+		printf("v6.0\n");
 		if (argc != 2)
 			goto input;
 	}
 	else if (lstrcmp(gn, "h") == 0)
 	{
-		goto start;
+		printf("示例：x3-tool.exe [功能] ([值])\n");
+		printf("一个超小体积的强大的windows命令行工具-x3tool  v6.0\n");
+		printf("支持直接运行/命令行调用\n");
+		printf("无返回值的返回0均为失败1均为成功\n");
+		printf("邮件:admin@n103.top\n");
+		printf("官网:www.n103.top\n");
+		printf("           by:  xbebhxx3\n\n");
+		printf("x3-tool\n");
+		printf("|- 权限操作                                     \n");
+		printf("|    |- 判断管理员权限  1有 0无             (ia)\n");
+		printf("|    |- 以管理员权限打开                    (ua)\n");
+		printf("|    |- 以system权限打开                    (us)\n");
+		printf("|    |- 以TrustedInstaller权限打开          (ut)\n");
+		printf("|    |- 以administrator权限重启工具         (ra)\n");
+		printf("|    |- 以TrustedInstaller权限重启工具      (rt)\n");
+		printf("|- 进程操作                                     \n");
+		printf("|   |- 结束进程                             (kp)\n");
+		printf("|   |- 判断进程是否存在 ,并返回进程id       (ip)\n");
+		printf("|   |- 获得进程路径                         (gpl)\n");
+		printf("|   |- 挂起进程                             (sp)\n");
+		printf("|   |- 设置关键进程                         (cp)\n");
+		printf("|   |- 停止服务                             (cs)\n");
+		printf("|   |- 启动服务                             (ss)\n");
+		printf("|   |- 列出所有服务                         (ls)\n");
+		printf("|   |- 列出进程模块                         (lpm)\n");
+		printf("|   |- 列出进程线程                         (lpt)\n");
+		printf("|   |- 列出所有进程详细信息                 (lp)\n");
+		printf("|- 编/解码操作                                  \n");
+		printf("|      |- Url编码                           (cu)\n");
+		printf("|      |- Url解码                           (du)\n");
+		printf("|      |- 简易加密                          (xc)\n");
+		printf("|- 锁定鼠标键盘                             (lkm)\n");
+		printf("|- 执行shell命令                            (rs)\n");
+		printf("|- 获得鼠标位置                             (mxy)\n");
+		printf("|- 清屏                                     (cls)\n");
+		printf("|- 获得当前ip                               (gi)\n");
+		printf("|- 获得当前用户名                           (gu)\n");
+		printf("|- 获得系统版本                             (gv)\n");
+		printf("|- 居中输出                                 (om)\n");
+		printf("|- 真·全屏                                 (fc)\n");
+		printf("|- 随机数                                   (rn)\n");
+		printf("|- 帮助                                     (h)\n");
+		printf("|- 版本                                     (v)\n\n");
+		printf("命令行示例: x3-tool.exe sp 10010 1\n");
+		printf("示例: kp\n\n");
+		goto input;
 	}
 	else
 	{

