@@ -50,13 +50,15 @@
 在shell中根据提示顺序输入
 
 ### 示例：
-x3-tool.exe sp 10010 1(挂起id为10010的进程)
+- `x3-tool.exe ip cmd.exe`(获得进程名为cmd.exe的进程id)
 
-x3-tool.exe sp 10010 0(取消挂起id为10010的进程)
+- `x3-tool.exe sp 1000 1`(挂起id为1000的进程)
 
-x3-tool.exe ut cmd.exe(以TrustedInstaller权限打开cmd)
+- `x3-tool.exe sp 1000 0`(取消挂起id为1000的进程)
 
-x3-tool gpl cmd.exe(获得进程名为cmd.exe的进程路径)
+- `x3-tool.exe ut cmd.exe`(以TrustedInstaller权限打开cmd)
+
+- x3-tool gpl 1000(获得进程名为cmd.exe的进程路径)
 
 ## 在批处理文件中调用
 
@@ -78,7 +80,10 @@ x3-tool gpl cmd.exe(获得进程名为cmd.exe的进程路径)
     
 以TrustedInstaller权限执行bat
 
-# 编译环境
-MinGW64（g++）
+# 编译
+编译环境：MinGW64（g++）
 
-添加 -std=gnu++11 -lgdi32 -lwsock32
+添加 `-Os -lgdi32 -lwsock32 -Wl,-gc-sections -fno-exceptions -fno-rtti`(除了`-lgdi32 -lwsock32`必须添加之外其他的都是为了减小体积)
+
+下载 https://github.com/xbebhxx3/x3-f.h 并添加
+
